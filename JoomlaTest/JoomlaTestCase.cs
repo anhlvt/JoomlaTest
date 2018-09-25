@@ -15,13 +15,12 @@ namespace JoomlaTest
     {
         IWebDriver driver;
         Random rdn;
-
-
-
+       
         [TestInitialize]
         public void Init()
         {
             driver = new ChromeDriver();
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             navigateToWebpage("http://192.168.190.247/joomlatest/administrator/index.php");
             driver.Manage().Window.Maximize();
             login("lctp", "lctp");
@@ -55,7 +54,7 @@ namespace JoomlaTest
 
             createNewArticle(title, null, categoryItem, null, null, paragraph, saveType);
             checkArticleExist(title, null, categoryItem);
-            editArticle(titleEdit, null, categoryItemEdit, null, null, null, saveType);
+            editArticle(title,titleEdit, null, categoryItemEdit, null, null, null, saveType);
             checkSuccessMessageExist(successMessage);
             checkArticleExist(titleEdit, null, categoryItemEdit);
         }
@@ -116,7 +115,6 @@ namespace JoomlaTest
             checkSuccessMessageExist(successMessage);
             selectFilterDropList(statusFilter, null, null, null);
             checkArticleExist(title, statusChange, categoryItem);
-
         }
 
 
@@ -126,7 +124,7 @@ namespace JoomlaTest
             driver.Close();
         }
 
-        #region METHODS
+        
         #region Navigate to Web
         public void navigateToWebpage(string url)
         {
@@ -199,8 +197,24 @@ namespace JoomlaTest
         #endregion
         #region Select save type
         public void selectSaveType(string saveType)
-        {
-            driver.FindElement(By.CssSelector("#toolbar-save > button")).Click();
+        {       
+            switch(saveType)
+            {
+                case "Save":
+                    driver.FindElement(By.CssSelector("#toolbar-apply > button")).Click();
+                    break;
+                case "Save&Close":
+                    driver.FindElement(By.CssSelector("#toolbar-save > button")).Click();
+                    break;
+                case "Save&New":
+                    driver.FindElement(By.CssSelector("#toolbar-save-new > button")).Click();
+                    break;
+                case "Cancel":
+                    driver.FindElement(By.CssSelector("#toolbar-cancel > button")).Click();
+                    break;
+                default:
+                    break;
+            }       
         }
         #endregion
         #region Click on recently article
@@ -241,27 +255,20 @@ namespace JoomlaTest
         }
         #endregion
         #region Edit article
-        public void editArticle(string title, string statusItems, string categoryItems, string accessItems, string languageItems, string paragraph, string saveType)
+        public void editArticle(string title,string titleEdit, string statusItems, string categoryItems, string accessItems, string languageItems, string paragraph, string saveType)
         {
             goToArticlePage();
-            driver.FindElement(By.Id("cb0")).Click();
+            checkOnRecentArticle(title);
             clickToolbarButton("Edit");
-            fillArticleInformation(title, statusItems, categoryItems, accessItems, languageItems, paragraph);
+            fillArticleInformation(titleEdit, statusItems, categoryItems, accessItems, languageItems, paragraph);
             selectSaveType(saveType);
         }
         #endregion
         #region Change status article
         public void changeStatusArticle(string title, string statusChange)
         {
-            try
-            {
-                checkOnRecentArticle(title);
-                clickToolbarButton(statusChange);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            checkOnRecentArticle(title);
+            clickToolbarButton(statusChange);
         }
         #endregion
         #region Check article exist
@@ -361,21 +368,6 @@ namespace JoomlaTest
                 Console.WriteLine(e);
             }
         }
-        #endregion
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        #endregion  
     }
 }
